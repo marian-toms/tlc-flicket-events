@@ -27,9 +27,7 @@ export default async function handler(req, res) {
                 title
                 startDate
                 endDate
-                artwork {
-                  url
-                }
+                imageUrl
                 venue {
                   name
                   address {
@@ -70,7 +68,7 @@ export default async function handler(req, res) {
         }),
         location: node.venue?.name || 'Location TBA',
         city: node.venue?.address?.city || '',
-        artwork: node.artwork?.url || null,
+        imageUrl: node.imageUrl || null,
         url: `https://thelatinclub.flicket.co.nz/event/${node.id}`
       };
     });
