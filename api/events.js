@@ -28,6 +28,9 @@ export default async function handler(req, res) {
                 title
                 startDate
                 endDate
+                banner {
+                  url
+                }
                 venue {
                   name
                   address {
@@ -63,17 +66,3 @@ export default async function handler(req, res) {
           day: 'numeric'
         }),
         time: new Date(node.startDate).toLocaleTimeString('en-NZ', {
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
-        location: node.venue?.name || 'Location TBA',
-        city: node.venue?.address?.city || '',
-        url: `https://thelatinclub.flicket.co.nz/event/${node.id}`
-      };
-    });
-
-    res.status(200).json({ success: true, events });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch events', message: error.message });
-  }
-}
