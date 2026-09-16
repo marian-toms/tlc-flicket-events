@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   try {
     const today = new Date().toISOString();
     const response = await fetch(
-      `https://api.flicket.co.nz/api/v1/events/search?limit=50&startDate[gte]=${today}&status=active`,
+      `https://api.flicket.co.nz/api/v1/events/search?limit=5`,
       {
         method: 'GET',
         headers: {
@@ -24,35 +24,10 @@ export default async function handler(req, res) {
     );
 
     const data = await response.json();
-
-    if (!data.data) {
-      return res.status(400).json({ error: 'No events found' });
-    }
-
-    // Filtrar solo eventos que estén en venta (on sale)
-    const events = data.data
-      .filter(event => event.isOnSale || event.ticketsSold !== null)
-      .map(event => ({
-        id: event.id,
-        title: event.name || 'Untitled Event',
-        date: new Date(event.startDate).toLocaleDateString('en-NZ', {
-          weekday: 'short',
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
-        }),
-        time: new Date(event.startDate).toLocaleTimeString('en-NZ', {
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
-        location: event.venue?.name || 'Location TBA',
-        city: event.venue?.city || '',
-        imageUrl: event.imageUrl || null,
-        url: `https://thelatinclub.flicket.co.nz/event/${event.id}`
-      }));
-
-    res.status(200).json({ success: true, events });
+    
+    // Retorna TODOS los campos del primer evento para ver qué tiene
+    res.status(200).json(data.data[0]);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch events', message: error.message });
+    res.status(500).json({ error: error.message });
   }
 }
