@@ -13,7 +13,7 @@ export default async function handler(req, res) {
   try {
     const today = new Date().toISOString();
     const response = await fetch(
-      `https://api.flicket.co.nz/api/v1/events/search?limit=50&startDate[gte]=${today}`,
+      `https://api.flicket.co.nz/api/v1/events/search?limit=50&startDate[gte]=${today}&status=active`,
       {
         method: 'GET',
         headers: {
@@ -29,24 +29,27 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'No events found' });
     }
 
-    const events = data.data.map(event => ({
-      id: event.id,
-      title: event.name || 'Untitled Event',
-      date: new Date(event.startDate).toLocaleDateString('en-NZ', {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      }),
-      time: new Date(event.startDate).toLocaleTimeString('en-NZ', {
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
-      location: event.venue?.name || 'Location TBA',
-      city: event.venue?.city || '',
-      imageUrl: event.imageUrl || null,
-      url: `https://thelatinclub.flicket.co.nz/event/${event.id}`
-    }));
+    // Filtrar solo eventos que estén en venta (on sale)
+    const events = data.data
+      .filter(event => event.isOnSale || event.ticketsSold !== null)
+      .map(event => ({
+        id: event.id,
+        title: event.name || 'Untitled Event',
+        date: new Date(event.startDate).toLocaleDateString('en-NZ', {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        }),
+        time: new Date(event.startDate).toLocaleTimeString('en-NZ', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        location: event.venue?.name || 'Location TBA',
+        city: event.venue?.city || '',
+        imageUrl: event.imageUrl || null,
+        url: `https://thelatinclub.flicket.co.nz/event/${event.id}`
+      }));
 
     res.status(200).json({ success: true, events });
   } catch (error) {
