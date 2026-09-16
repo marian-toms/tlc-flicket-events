@@ -11,67 +11,42 @@ export default async function handler(req, res) {
   const orgId = 'bbddf092-5863-497c-8708-88d0d2322a94';
 
   try {
-    const response = await fetch('https://api.flicket.co.nz/graphql', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'flicket-api-key': apiKey,
-        'flicket-org-id': orgId
-      },
-      body: JSON.stringify({
-        query: `query events($where: EventWhereInput, $orderBy: EventOrderByInput) {
-          events(where: $where, orderBy: $orderBy) {
-            edges {
-              node {
-                id
-                title
-                startDate
-                endDate
-                imageUrl
-                venue {
-                  name
-                  address {
-                    city
-                  }
-                }
-              }
-            }
-          }
-        }`,
-        variables: {
-          where: { startDate: new Date().toISOString(), isActive: true },
-          orderBy: { startDate: 'ASC' }
+    const today = new Date().toISOString();
+    const response = await fetch(
+      `https://api.flicket.co.nz/api/v1/events/search?limit=50&startDate[gte]=${today}`,
+      {
+        method: 'GET',
+        headers: {
+          'flicket-api-key': apiKey,
+          'Flicket-Org-Id': orgId
         }
-      })
-    });
+      }
+    );
 
     const data = await response.json();
 
-    if (data.errors) {
-      return res.status(400).json({ error: 'GraphQL Error', details: data.errors });
+    if (!data.data) {
+      return res.status(400).json({ error: 'No events found' });
     }
 
-    const events = data.data.events.edges.map(edge => {
-      const node = edge.node;
-      return {
-        id: node.id,
-        title: node.title || 'Untitled Event',
-        date: new Date(node.startDate).toLocaleDateString('en-NZ', {
-          weekday: 'short',
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
-        }),
-        time: new Date(node.startDate).toLocaleTimeString('en-NZ', {
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
-        location: node.venue?.name || 'Location TBA',
-        city: node.venue?.address?.city || '',
-        imageUrl: node.imageUrl || null,
-        url: `https://thelatinclub.flicket.co.nz/event/${node.id}`
-      };
-    });
+    const events = data.data.map(event => ({
+      id: event.id,
+      title: event.name || 'Untitled Event',
+      date: new Date(event.startDate).toLocaleDateString('en-NZ', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      }),
+      time: new Date(event.startDate).toLocaleTimeString('en-NZ', {
+        hour: '2-digit',
+        minute: '2-digit'
+      }),
+      location: event.venue?.name || 'Location TBA',
+      city: event.venue?.city || '',
+      imageUrl: event.imageUrl || null,
+      url: `https://thelatinclub.flicket.co.nz/event/${event.id}`
+    }));
 
     res.status(200).json({ success: true, events });
   } catch (error) {
