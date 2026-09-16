@@ -1,4 +1,13 @@
 export default async function handler(req, res) {
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   const apiKey = '655f625f65824a5e7ac3eb7964e75792';
   const orgId = 'bbddf092-5863-497c-8708-88d0d2322a94';
 
