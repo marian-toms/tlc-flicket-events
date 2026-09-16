@@ -21,7 +21,9 @@ export default async function handler(req, res) {
                 endDate
                 venue {
                   name
-                  address { city }
+                  address {
+                    city
+                  }
                 }
               }
             }
@@ -35,19 +37,34 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    if (data.errors) return res.status(400).json({ error: data.errors });
 
-    const events = data.data.events.edges.map(edge => ({
-      title: edge.node.title,
-      date: new Date(edge.node.startDate).toLocaleDateString('en-NZ', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }),
-      time: new Date(edge.node.startDate).toLocaleTimeString('en-NZ', { hour: '2-digit', minute: '2-digit' }),
-      location: edge.node.venue?.name || 'Location TBA',
-      city: edge.node.venue?.address?.city || '',
-      url: `https://thelatinclub.flicket.co.nz/event/${edge.node.id}`
-    }));
+    if (data.errors) {
+      return res.status(400).json({ error: 'GraphQL Error', details: data.errors });
+    }
+
+    const events = data.data.events.edges.map(edge => {
+      const node = edge.node;
+      return {
+        id: node.id,
+        title: node.title || 'Untitled Event',
+        date: new Date(node.startDate).toLocaleDateString('en-NZ', {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        }),
+        time: new Date(node.startDate).toLocaleTimeString('en-NZ', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        location: node.venue?.name || 'Location TBA',
+        city: node.venue?.address?.city || '',
+        url: `https://thelatinclub.flicket.co.nz/event/${node.id}`
+      };
+    });
 
     res.status(200).json({ success: true, events });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: 'Failed to fetch events', message: error.message });
   }
 }
