@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -28,7 +27,7 @@ export default async function handler(req, res) {
                 title
                 startDate
                 endDate
-                banner {
+                image {
                   url
                 }
                 venue {
@@ -66,3 +65,18 @@ export default async function handler(req, res) {
           day: 'numeric'
         }),
         time: new Date(node.startDate).toLocaleTimeString('en-NZ', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        location: node.venue?.name || 'Location TBA',
+        city: node.venue?.address?.city || '',
+        image: node.image?.url || null,
+        url: `https://thelatinclub.flicket.co.nz/event/${node.id}`
+      };
+    });
+
+    res.status(200).json({ success: true, events });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch events', message: error.message });
+  }
+}
