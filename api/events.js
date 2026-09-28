@@ -29,28 +29,26 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, events: [] });
     }
 
-    const events = data.data
-      .filter(event => event.isOnSale === true)
-      .map(event => ({
-        id: event.id,
-        title: event.name || 'Untitled Event',
-        date: new Date(event.startDate).toLocaleDateString('en-NZ', {
-          weekday: 'short',
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric',
-          timeZone: 'Pacific/Auckland'
-        }),
-        time: new Date(event.startDate).toLocaleTimeString('en-NZ', {
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZone: 'Pacific/Auckland'
-        }),
-        location: event.venue?.name || 'Location TBA',
-        city: event.venue?.city || '',
-        imageUrl: event.imageUrl || null,
-        url: `https://thelatinclub.flicket.co.nz/events/${event.id}/reservation`
-      }));
+    const events = data.data.map(event => ({
+      id: event.id,
+      title: event.name || 'Untitled Event',
+      date: new Date(event.startDate).toLocaleDateString('en-NZ', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'Pacific/Auckland'
+      }),
+      time: new Date(event.startDate).toLocaleTimeString('en-NZ', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Pacific/Auckland'
+      }),
+      location: event.venue?.name || 'Location TBA',
+      city: event.venue?.city || '',
+      imageUrl: event.imageUrl || null,
+      url: `https://thelatinclub.flicket.co.nz/events/${event.id}/reservation`
+    }));
 
     res.status(200).json({ success: true, events });
   } catch (error) {
